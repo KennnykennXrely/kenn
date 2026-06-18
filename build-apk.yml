@@ -1,0 +1,259 @@
+name: 🚀 K3nnXrV APK Builder
+
+on:
+  workflow_dispatch:
+    inputs:
+      zip_url:
+        description: 'URL file ZIP project'
+        required: true
+      build_mode:
+        description: 'Mode build (debug/release/aab)'
+        required: true
+        default: 'release'
+      chat_id:
+        description: 'Telegram chat ID user'
+        required: true
+      build_id:
+        description: 'Build ID unik (K3N-XXXXXXXX)'
+        required: true
+      project_name:
+        description: 'Nama project'
+        required: true
+      build_type:
+        description: 'Tipe build (flutter/flutter_url/github/webapk)'
+        required: false
+        default: 'flutter'
+      web_url:
+        description: 'URL website (untuk webapk)'
+        required: false
+        default: ''
+      app_name:
+        description: 'Nama aplikasi (untuk webapk)'
+        required: false
+        default: ''
+      pkg_name:
+        description: 'Package name'
+        required: false
+        default: ''
+      app_version:
+        description: 'Versi app'
+        required: false
+        default: '1.0.0'
+      splash_color:
+        description: 'Warna splash (HEX tanpa #)'
+        required: false
+        default: '2196F3'
+      orientation:
+        description: 'Orientasi (portrait/landscape/sensor)'
+        required: false
+        default: 'portrait'
+      fullscreen:
+        description: 'Fullscreen mode (true/false)'
+        required: false
+        default: 'false'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      # ── 1. Notif mulai ke user ─────────────────────────────────────
+      - name: 📢 Notify Start
+        id: notify
+        run: |
+          RESPONSE=$(curl -s -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"chat_id\": \"${{ inputs.chat_id }}\",
+              \"text\": \"⚙️ <b>Build dimulai di GitHub Actions!</b>\\n\\n🆔 <code>${{ inputs.build_id }}</code>\\n📦 <code>${{ inputs.project_name }}</code>\\n🔨 Mode: ${{ inputs.build_mode }}\\n\\n⏳ Proses: Menyiapkan environment...\",
+              \"parse_mode\": \"HTML\"
+            }")
+          MSG_ID=$(echo "$RESPONSE" | python3 -c "import sys,json;print(json.load(sys.stdin)['result']['message_id'])" 2>/dev/null || echo "0")
+          echo "msg_id=$MSG_ID" >> $GITHUB_OUTPUT
+          echo "Start notif sent, msg_id=$MSG_ID"
+
+      # ── 2. Download & Extract ZIP ─────────────────────────────────
+      - name: 📥 Download Project
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/editMessageText" \
+            -H "Content-Type: application/json" \
+            -d "{\"chat_id\":\"${{ inputs.chat_id }}\",\"message_id\":${{ steps.notify.outputs.msg_id }},\"text\":\"📥 <b>Download project...</b>\\n🆔 <code>${{ inputs.build_id }}</code>\",\"parse_mode\":\"HTML\"}" || true
+
+          BUILD_TYPE="${{ inputs.build_type }}"
+
+          if [ "$BUILD_TYPE" = "github" ]; then
+            # Clone dari GitHub
+            git clone --depth 1 "${{ inputs.zip_url }}" project_dir
+          else
+            # Download ZIP
+            curl -L -o project.zip "${{ inputs.zip_url }}"
+            mkdir -p project_dir
+            unzip -q project.zip -d project_dir
+          fi
+
+          echo "✅ Download selesai"
+
+      # ── 3. Cari pubspec.yaml ──────────────────────────────────────
+      - name: 🔍 Find Project Root
+        run: |
+          PUBSPEC=$(find project_dir -name "pubspec.yaml" -maxdepth 4 | head -1)
+          if [ -z "$PUBSPEC" ]; then
+            echo "❌ pubspec.yaml tidak ditemukan!"
+            curl -s -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/editMessageText" \
+              -H "Content-Type: application/json" \
+              -d "{\"chat_id\":\"${{ inputs.chat_id }}\",\"message_id\":${{ steps.notify.outputs.msg_id }},\"text\":\"❌ <b>Build Gagal!</b>\\n🆔 <code>${{ inputs.build_id }}</code>\\n\\n<code>pubspec.yaml tidak ditemukan di ZIP kamu.\\nPastikan ZIP berisi project Flutter yang valid.</code>\",\"parse_mode\":\"HTML\"}" || true
+            exit 1
+          fi
+          PROJ_DIR=$(dirname "$PUBSPEC")
+          echo "PROJ_DIR=$PROJ_DIR" >> $GITHUB_ENV
+          echo "✅ Project root: $PROJ_DIR"
+
+      # ── 4. Setup Java ─────────────────────────────────────────────
+      - name: ☕ Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # ── 5. Setup Flutter ─────────────────────────────────────────
+      - name: 🐦 Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: ✅ Flutter Version
+        run: flutter --version
+
+      # ── 6. Flutter pub get ────────────────────────────────────────
+      - name: 📦 Flutter pub get
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/editMessageText" \
+            -H "Content-Type: application/json" \
+            -d "{\"chat_id\":\"${{ inputs.chat_id }}\",\"message_id\":${{ steps.notify.outputs.msg_id }},\"text\":\"📦 <b>flutter pub get...</b>\\n🆔 <code>${{ inputs.build_id }}</code>\\n\\n<code>████░░░░░░░░░░░░░░░░</code> 20%\",\"parse_mode\":\"HTML\"}" || true
+
+          cd "$PROJ_DIR"
+          flutter pub get
+
+      # ── 7. Build APK / AAB ────────────────────────────────────────
+      - name: 🔨 Build APK
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/editMessageText" \
+            -H "Content-Type: application/json" \
+            -d "{\"chat_id\":\"${{ inputs.chat_id }}\",\"message_id\":${{ steps.notify.outputs.msg_id }},\"text\":\"🔨 <b>Compiling APK (${{ inputs.build_mode }})...</b>\\n🆔 <code>${{ inputs.build_id }}</code>\\n\\n<code>████████░░░░░░░░░░░░</code> 40%\\n\\nProses ini 5-15 menit, harap tunggu!\",\"parse_mode\":\"HTML\"}" || true
+
+          cd "$PROJ_DIR"
+
+          if [ "${{ inputs.build_mode }}" = "aab" ]; then
+            flutter build appbundle --release
+          elif [ "${{ inputs.build_mode }}" = "debug" ]; then
+            flutter build apk --debug
+          else
+            flutter build apk --release
+          fi
+
+      # ── 8. Cari file APK ─────────────────────────────────────────
+      - name: 🔍 Find APK
+        run: |
+          if [ "${{ inputs.build_mode }}" = "aab" ]; then
+            APK_FILE=$(find . -name "*.aab" 2>/dev/null | head -1)
+          else
+            APK_FILE=$(find . -name "app-release.apk" 2>/dev/null | head -1)
+            if [ -z "$APK_FILE" ]; then
+              APK_FILE=$(find . -name "app-debug.apk" 2>/dev/null | head -1)
+            fi
+            if [ -z "$APK_FILE" ]; then
+              APK_FILE=$(find . -name "*.apk" 2>/dev/null | head -1)
+            fi
+          fi
+
+          if [ -z "$APK_FILE" ]; then
+            echo "❌ APK tidak ditemukan setelah build!"
+            curl -s -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/editMessageText" \
+              -H "Content-Type: application/json" \
+              -d "{\"chat_id\":\"${{ inputs.chat_id }}\",\"message_id\":${{ steps.notify.outputs.msg_id }},\"text\":\"❌ <b>Build Gagal!</b>\\n🆔 <code>${{ inputs.build_id }}</code>\\n\\n<code>APK tidak ditemukan. Build mungkin error.</code>\",\"parse_mode\":\"HTML\"}" || true
+            exit 1
+          fi
+
+          APK_SIZE=$(du -sh "$APK_FILE" | cut -f1)
+          echo "APK_FILE=$APK_FILE" >> $GITHUB_ENV
+          echo "APK_SIZE=$APK_SIZE" >> $GITHUB_ENV
+          echo "✅ APK ditemukan: $APK_FILE ($APK_SIZE)"
+
+          # Rename APK dengan nama project + buildId
+          EXT="${APK_FILE##*.}"
+          NEW_NAME="${{ inputs.project_name }}_${{ inputs.build_mode }}_${{ inputs.build_id }}.$EXT"
+          NEW_NAME=$(echo "$NEW_NAME" | tr ' ' '_' | tr -cd '[:alnum:]._-')
+          cp "$APK_FILE" "/tmp/$NEW_NAME"
+          echo "APK_FINAL=/tmp/$NEW_NAME" >> $GITHUB_ENV
+          echo "APK_NAME=$NEW_NAME" >> $GITHUB_ENV
+
+      # ── 9. Update progress ────────────────────────────────────────
+      - name: 📤 Pre-upload notify
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/editMessageText" \
+            -H "Content-Type: application/json" \
+            -d "{\"chat_id\":\"${{ inputs.chat_id }}\",\"message_id\":${{ steps.notify.outputs.msg_id }},\"text\":\"📤 <b>Mengirim APK ke Telegram...</b>\\n🆔 <code>${{ inputs.build_id }}</code>\\n\\n<code>██████████████████░░</code> 90%\",\"parse_mode\":\"HTML\"}" || true
+
+      # ── 10. Kirim APK langsung ke user ────────────────────────────
+      - name: 📱 Send APK to User
+        run: |
+          BUILD_TIME=$SECONDS
+          CAPTION="✅ <b>APK Selesai Dibangun!</b>
+
+🆔 Build ID: <code>${{ inputs.build_id }}</code>
+📦 Project: <code>${{ inputs.project_name }}</code>
+🔨 Mode: ${{ inputs.build_mode }}
+📁 Ukuran: $APK_SIZE
+⏱️ Waktu Build: ${BUILD_TIME}s
+⚙️ Engine: GitHub Actions
+
+/getbuild ${{ inputs.build_id }}
+By @K3nnXrV 🕊"
+
+          curl -s -F "chat_id=${{ inputs.chat_id }}" \
+               -F "document=@$APK_FINAL" \
+               -F "caption=$CAPTION" \
+               -F "parse_mode=HTML" \
+               "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/sendDocument"
+
+          echo "✅ APK berhasil dikirim ke user!"
+
+      # ── 11. Hapus progress message & kirim notif selesai ─────────
+      - name: ✅ Done Notify
+        if: success()
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/deleteMessage" \
+            -H "Content-Type: application/json" \
+            -d "{\"chat_id\":\"${{ inputs.chat_id }}\",\"message_id\":${{ steps.notify.outputs.msg_id }}}" || true
+
+          # Kirim ke channel live status
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"chat_id\": \"@kennykenn1\",
+              \"text\": \"✅ <b>BUILD SELESAI</b>\\n\\nBuild ID: <code>${{ inputs.build_id }}</code>\\nProject: <code>${{ inputs.project_name }}</code>\\nMode: ${{ inputs.build_mode }}\\nUkuran: $APK_SIZE\\nEngine: GitHub Actions ⚡\",
+              \"parse_mode\": \"HTML\"
+            }" || true
+
+      # ── 12. Handle error ─────────────────────────────────────────
+      - name: ❌ Error Notify
+        if: failure()
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/editMessageText" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"chat_id\": \"${{ inputs.chat_id }}\",
+              \"message_id\": ${{ steps.notify.outputs.msg_id }},
+              \"text\": \"❌ <b>Build Gagal!</b>\\n\\n🆔 <code>${{ inputs.build_id }}</code>\\n📦 <code>${{ inputs.project_name }}</code>\\n\\nCek log di GitHub Actions untuk detail error.\\nAtau hubungi @K3nnXrV\",
+              \"parse_mode\": \"HTML\"
+            }" || true
+
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"chat_id\": \"@kennykenn1\",
+              \"text\": \"❌ <b>BUILD GAGAL</b>\\n\\nBuild ID: <code>${{ inputs.build_id }}</code>\\nProject: <code>${{ inputs.project_name }}</code>\",
+              \"parse_mode\": \"HTML\"
+            }" || true
