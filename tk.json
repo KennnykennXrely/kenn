@@ -1,7 +1,55 @@
-[
-  {
-    "username": "adminken",
-    "password": "ken123",
-    "expired": "2025-12-31"
+{
+  "users": [
+    {
+      "username": "trial_001",
+      "password": "trial123",
+      "level": "tk",
+      "telegramId": "9990001111",
+      "name": "Trial User 1",
+      "createdAt": "2024-05-01T08:00:00.000Z",
+      "expiredAt": "2024-05-08T08:00:00.000Z",
+      "duration": "7d",
+      "used": false,
+      "permissions": [
+        "limited_flood",
+        "view_dashboard"
+      ]
+    },
+    {
+      "username": "trial_002",
+      "password": "trial456",
+      "level": "tk",
+      "telegramId": "2223334444",
+      "name": "Trial User 2",
+      "createdAt": "2024-05-05T14:30:00.000Z",
+      "expiredAt": "2024-05-12T14:30:00.000Z",
+      "duration": "7d",
+      "used": true,
+      "permissions": [
+        "limited_flood"
+      ]
+    },
+    {
+      "username": "trial_premium_01",
+      "password": "premiumtrial",
+      "level": "tk",
+      "telegramId": "5554443333",
+      "name": "Premium Trial",
+      "createdAt": "2024-05-10T20:00:00.000Z",
+      "expiredAt": "2024-05-17T20:00:00.000Z",
+      "duration": "7d",
+      "used": false,
+      "permissions": [
+        "limited_flood",
+        "view_dashboard",
+        "view_logs"
+      ]
+    }
+  ],
+  "settings": {
+    "defaultDuration": "7d",
+    "maxTrials": 3,
+    "autoDeleteAfterExpiry": true,
+    "logLevel": "info"
   }
-]
+}
