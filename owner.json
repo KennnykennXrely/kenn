@@ -1,7 +1,6 @@
-[
-  {
-    "username": "adminken",
-    "password": "ken123",
-    "expired": "2026-12-2"
-  }
-]
+{
+  "users": [
+    { "username": "kenn", "password": "kenn123", "level": "owner", "telegramId": "7066156416" },
+    { "username": "rizxvelz", "password": "rizx123", "level": "owner", "telegramId": "123456789" }
+  ]
+}
