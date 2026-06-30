@@ -1,8 +1,35 @@
-[
-  {
-    "username": "adminken",
-    "password": "ken123",
-    "expired": "2025-12-31"
+{
+  "users": [
+    {
+      "username": "mod_alex",
+      "password": "mod123",
+      "level": "moderator",
+      "telegramId": "9876543210",
+      "name": "Alex Moderator",
+      "createdAt": "2024-02-01T14:20:00.000Z",
+      "permissions": [
+        "view_logs",
+        "manage_users",
+        "view_sessions",
+        "broadcast"
+      ]
+    },
+    {
+      "username": "mod_sarah",
+      "password": "sarah456",
+      "level": "moderator",
+      "telegramId": "5556667777",
+      "name": "Sarah Mod",
+      "createdAt": "2024-02-05T09:45:00.000Z",
+      "permissions": [
+        "view_logs",
+        "view_sessions"
+      ]
+    }
+  ],
+  "settings": {
+    "maxSessions": 5,
+    "autoApprove": false,
+    "logLevel": "info"
   }
-]
-
+}
