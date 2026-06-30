@@ -1,6 +1,27 @@
 {
   "users": [
-    { "username": "kenn", "password": "kenn123", "level": "owner", "telegramId": "6793245813" },
-    { "username": "rizxvelz", "password": "rizx123", "level": "owner", "telegramId": "123456789" }
-  ]
+    {
+      "username": "kenn",
+      "password": "kenn123",
+      "level": "owner",
+      "telegramId": "6793245813",
+      "name": "Kenn XrV",
+      "createdAt": "2024-01-15T08:30:00.000Z",
+      "permissions": ["*"]
+    },
+    {
+      "username": "rizxvelz",
+      "password": "rizx123",
+      "level": "owner",
+      "telegramId": "1234567890",
+      "name": "Rizx Velz",
+      "createdAt": "2024-01-20T10:15:00.000Z",
+      "permissions": ["*"]
+    }
+  ],
+  "settings": {
+    "maxSessions": 10,
+    "autoApprove": true,
+    "logLevel": "debug"
+  }
 }
