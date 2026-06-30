@@ -1,0 +1,11 @@
+{
+    "index.js": "d4c7b1a8e5f2d3c6b9a0e8f1a3c5d7e9b2f4a6c8e0d2b4f6a8c0e2d4b6f8a0c2e4d6b8f0a2c4e6d8b0f2a4c6e8d0b2f4a6c8e0d2b4f6a8",
+    "key": "7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3",
+    "timestamp": "2026-07-01T00:00:00.000Z",
+    "metadata": {
+        "filename": "index.js",
+        "algorithm": "sha512",
+        "version": "1.0.0",
+        "secret": "kenny"
+    }
+}
