@@ -1,8 +1,39 @@
-[
-  {
-    "username": "adminken",
-    "password": "ken123",
-    "expired": "2025-12-31"
+{
+  "users": [
+    {
+      "username": "pt_john",
+      "password": "pt123",
+      "level": "pt",
+      "telegramId": "1112223333",
+      "name": "John Premium",
+      "createdAt": "2024-03-01T12:00:00.000Z",
+      "expiredAt": "2024-12-31T23:59:59.000Z",
+      "package": "platinum",
+      "permissions": [
+        "full_flood",
+        "priority_queue",
+        "unlimited_sessions"
+      ]
+    },
+    {
+      "username": "pt_jane",
+      "password": "jane789",
+      "level": "pt",
+      "telegramId": "4445556666",
+      "name": "Jane Premium",
+      "createdAt": "2024-03-10T08:30:00.000Z",
+      "expiredAt": "2024-09-30T23:59:59.000Z",
+      "package": "gold",
+      "permissions": [
+        "flood_basic",
+        "priority_queue"
+      ]
+    }
+  ],
+  "settings": {
+    "maxSessions": 8,
+    "autoApprove": true,
+    "logLevel": "info",
+    "defaultPackage": "gold"
   }
-]
-
+}
