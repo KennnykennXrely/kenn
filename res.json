@@ -1,8 +1,41 @@
-[
-  {
-    "username": "adminken",
-    "password": "ken123",
-    "expired": "2025-12-31"
+{
+  "users": [
+    {
+      "username": "res_budi",
+      "password": "res123",
+      "level": "reseller",
+      "telegramId": "7778889999",
+      "name": "Budi Reseller",
+      "createdAt": "2024-04-01T10:00:00.000Z",
+      "balance": 25,
+      "keysSold": 12,
+      "commission": 15,
+      "permissions": [
+        "create_keys",
+        "view_keys",
+        "delete_keys"
+      ]
+    },
+    {
+      "username": "res_ayu",
+      "password": "ayu456",
+      "level": "reseller",
+      "telegramId": "6667778888",
+      "name": "Ayu Reseller",
+      "createdAt": "2024-04-10T16:45:00.000Z",
+      "balance": 8,
+      "keysSold": 5,
+      "commission": 10,
+      "permissions": [
+        "create_keys",
+        "view_keys"
+      ]
+    }
+  ],
+  "settings": {
+    "commissionRate": 15,
+    "minBalance": 1,
+    "maxKeysPerDay": 50,
+    "logLevel": "info"
   }
-]
-
+}
